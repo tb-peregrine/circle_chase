@@ -1,0 +1,14 @@
+
+DESCRIPTION >
+    Stores click events from the circle clicking game, tracking user interactions and game performance
+
+SCHEMA >
+    `user_id` String `json:$.user_id`,
+    `game_id` String `json:$.game_id`,
+    `timestamp` DateTime64(3) `json:$.timestamp`,
+    `correct_click` UInt8 `json:$.correct_click`
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "user_id, game_id, timestamp"
+        

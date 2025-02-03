@@ -1,0 +1,36 @@
+DESCRIPTION >
+    Calculates user statistics including average click time, game duration, and best game performance
+
+NODE user_stats_node
+SQL >
+    %
+    WITH 
+    game_stats AS (
+        SELECT
+            user_id,
+            game_id,
+            count(*) as total_clicks,
+            countIf(correct_click = 1) as correct_clicks,
+            (toUnixTimestamp64Milli(max(timestamp)) - toUnixTimestamp64Milli(min(timestamp))) as game_duration_ms,
+            min(timestamp) as game_start,
+            max(timestamp) as game_end
+        FROM game_clicks
+        WHERE 1=1
+        {% if defined(user_id) %}
+            AND user_id = {{String(user_id, '')}}
+        {% end %}
+        GROUP BY user_id, game_id
+        HAVING correct_clicks = 6
+    )
+    SELECT
+        user_id,
+        count() as completed_games,
+        round(avg(game_duration_ms)/1000, 2) as avg_game_duration_seconds,
+        round(min(game_duration_ms)/1000, 2) as best_game_duration_seconds,
+        round(avg(game_duration_ms/6)/1000, 2) as avg_click_time_seconds,
+        groupArray(tuple(game_id, correct_clicks, total_clicks, game_start, game_end)) as game_details
+    FROM game_stats
+    GROUP BY user_id
+
+TYPE endpoint
+        

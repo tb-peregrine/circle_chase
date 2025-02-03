@@ -1,0 +1,21 @@
+DESCRIPTION >
+    Debug endpoint to see all clicks for a user
+
+NODE debug_node
+SQL >
+    %
+    SELECT
+        user_id,
+        game_id,
+        timestamp,
+        correct_click,
+        count(*) OVER (PARTITION BY game_id) as clicks_in_game,
+        countIf(correct_click = 1) OVER (PARTITION BY game_id) as correct_clicks_in_game
+    FROM game_clicks
+    WHERE 1=1
+    {% if defined(user_id) %}
+        AND user_id = {{String(user_id, '')}}
+    {% end %}
+    ORDER BY game_id, timestamp
+
+TYPE endpoint 

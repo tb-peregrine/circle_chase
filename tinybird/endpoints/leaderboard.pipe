@@ -1,0 +1,27 @@
+DESCRIPTION >
+    Generates a leaderboard of the best performing users based on their fastest game completion time
+
+NODE leaderboard_node
+SQL >
+    WITH game_stats AS (
+        SELECT
+            user_id,
+            game_id,
+            countIf(correct_click = 1) as correct_clicks,
+            (toUnixTimestamp64Milli(max(timestamp)) - toUnixTimestamp64Milli(min(timestamp))) as game_duration_ms
+        FROM game_clicks
+        GROUP BY user_id, game_id
+        HAVING correct_clicks = 6  -- 1 start click + 5 game clicks
+    )
+    SELECT
+        user_id,
+        min(game_duration_ms) as best_time_ms,
+        count() as games_completed,
+        avg(game_duration_ms) as avg_time_ms
+    FROM game_stats
+    GROUP BY user_id
+    ORDER BY best_time_ms ASC
+    LIMIT 100
+
+TYPE endpoint
+        
